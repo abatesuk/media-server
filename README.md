@@ -15,3 +15,9 @@ This is all the files used to setup my personal media server running in a VM usi
 
 1. Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads) ( and corresponding VirtualBox Extension Pack )
 2. Install [Vagrant](https://www.vagrantup.com/downloads.html)
+3. Install teh Vagrant plugin [vagrant-hostsupdater](https://github.com/cogitatio/vagrant-hostsupdater)
+
+
+   ```
+   $ vagrant plugin install vagrant-hostsupdater
+   ```
