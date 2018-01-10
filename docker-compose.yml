@@ -1,0 +1,136 @@
+version: '2'
+services:
+    plex:
+        image: plexinc/pms-docker
+        container_name: plex
+        network_mode: "host"
+        ports:
+            - 32400:32400
+        volumes:
+            - /movies:/movies
+            - /tv:/tv
+            - /homevideos:/homevideos
+            - /docker/containers/plex/transcode:/transcode
+            - /docker/containers/plex/config:/config
+        restart: always
+        environment:
+            - VIRTUAL_PORT=32400
+            - VIRTUAL_HOST=plex.htpc
+            - VERSION=latest
+            - PGID=1000
+            - PUID=1000
+            - TZ="Europe/London"
+    nzbget:
+        image: linuxserver/nzbget
+        container_name: nzbget
+        ports:
+            - 6789:6789
+        volumes:
+            - /movies:/movies
+            - /tv:/tv
+            - /docker/downloads:/downloads
+            - /docker/containers/nzbget/config:/config
+        restart: always
+        environment:
+            - VIRTUAL_PORT=6789
+            - VIRTUAL_HOST=nzbget.htpc
+            - VERSION=latest
+            - PGID=1000
+            - PUID=1000
+    sonarr:
+        image: linuxserver/sonarr
+        container_name: sonarr
+        ports:
+            - 8989:8989
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /tv:/tv
+            - /docker/downloads/completed/TV:/downloads/completed/TV
+            - /docker/containers/sonarr/config:/config
+        restart: always
+        environment:
+            - VIRTUAL_PORT=8989
+            - VIRTUAL_HOST=sonarr.htpc
+            - VERSION=latest
+            - PGID=1000
+            - PUID=1000
+    radarr:
+        image: linuxserver/radarr
+        container_name: radarr
+        ports:
+            - 7878:7878
+        volumes:
+            - /movies:/movies
+            - /docker/downloads/completed/Movies:/downloads/completed/Movies
+            - /docker/containers/radarr/config:/config
+        restart: always
+        environment:
+            - VIRTUAL_PORT=7878
+            - VIRTUAL_HOST=radarr.htpc
+            - VERSION=latest
+            - PGID=1000
+            - PUID=1000
+            - TZ="Europe/London"
+    handbrake:
+        image: coppit/handbrake
+        container_name: handbrake
+        cap_add:
+            - SYS_NICE
+        volumes:
+            - /docker/containers/handbrake/watch:/watch:ro
+            - /docker/containers/handbrake/output:/output:rw
+            - /docker/containers/handbrake/config:/config:rw
+        restart: always
+    watchtower:
+        image: v2tec/watchtower
+        container_name: watchtower
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        restart: always
+    plexpy:
+        image: linuxserver/plexpy
+        container_name: radarr
+        ports:
+            - 8181:8181
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /docker/containers/plexpy/config:/config
+            - "/docker/containers/plex/config/Library/Application Support/Plex Media Server/Logs":/logs:ro
+        restart: always
+        environment:
+            - VIRTUAL_PORT=8181
+            - VIRTUAL_HOST=plexpy.htpc
+            - VERSION=latest
+            - PGID=1000
+            - PUID=1000
+    dashboard:
+        image: chimpchimp/manage-this-node
+        container_name: dashboard
+        restart: always
+        network_mode: "bridge"
+        ports:
+            - 3000:3000
+        environment:
+            - VIRTUAL_HOST=dashboard.htpc
+            - PGID=1000
+            - PUID=1000
+        volumes:
+            - $HOME/.config/dashboard:/config
+            - /etc/localtime:/etc/localtime:ro
+            - /docker/downloads/completed:/downloads
+    nginx-proxy:
+        image: jwilder/nginx-proxy
+        container_name: nginx-proxy
+        ports:
+            - "80:80"
+        volumes:
+            - /var/run/docker.sock:/tmp/docker.sock:ro
+
+
+
+
+
+
+
+
+
