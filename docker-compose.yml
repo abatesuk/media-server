@@ -90,7 +90,7 @@ services:
     plexpy:
         image: linuxserver/plexpy
         container_name: plexpy
-        port:
+        ports:
             - 8181:8181
         volumes:
             - /etc/localtime:/etc/localtime:ro
