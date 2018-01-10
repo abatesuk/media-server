@@ -89,13 +89,13 @@ services:
         restart: always
     plexpy:
         image: linuxserver/plexpy
-        container_name: radarr
-        ports:
+        container_name: plexpy
+        port:
             - 8181:8181
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /docker/containers/plexpy/config:/config
-            - "/docker/containers/plex/config/Library/Application Support/Plex Media Server/Logs":/logs:ro
+            - /docker/containers/plex/config/Library/Application\ Support/Plex Media\ Server/Logs:/logs:ro
         restart: always
         environment:
             - VIRTUAL_PORT=8181
