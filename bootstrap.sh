@@ -19,7 +19,7 @@ done
 # Install some base apps
 
 sudo apt-get -q update
-sudo apt-get install --no-install-recommends --fix-missing --assume-yes htop curl git python wget apt-transport-https ca-certificates software-properties-common
+sudo apt-get install --no-install-recommends --fix-missing --assume-yes htop curl git python wget apt-transport-https ca-certificates software-properties-common lm-sensors
 
 ## Add dockers official GPG key
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
@@ -31,20 +31,16 @@ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubun
 sudo apt-get update
 sudo apt-get install --assume-yes docker-ce
 
-#Add the ubuntu user to the docker group
-sudo usermod -a -G docker $USER
-
 #Get docker compose
 sudo curl -L https://github.com/docker/compose/releases/download/1.18.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
-
 #setup folders to store all the config files
+sudo -i
 sudo mkdir -p /docker/containers/{muximux,nzbget,plex,plexpy,radarr,sonarr,handbrake}/config
 sudo mkdir -p /docker/downloads/{completed/Movies,completed/TV}
 sudo mkdir -p /docker/containers/plex/transcode
 sudo mkdir -p /docker/containers/handbrake/{watch,output}
-sudo chown -R ubuntu:ubuntu /docker
+sudo chown -R adam:adam /docker
 
-cd /vagrant
-sudo docker-compose up
+sudo docker-compose up -d
