@@ -8,8 +8,8 @@ services:
             - 32400:32400
         volumes:
             - /storage/Movies:/movies
-            - /storage/TV\ Shows:/tv
-            - /storage/Home\ Videos:/homevideos
+            - /storage/TV Shows:/tv
+            - /storage/Home Videos:/homevideos
             - /docker/containers/plex/transcode:/transcode
             - /docker/containers/plex/config:/config
         restart: always
@@ -25,7 +25,7 @@ services:
             - 6789:6789
         volumes:
             - /storage/Movies:/movies
-            - /storage/TV\ Shows:/tv
+            - /storage/TV Shows:/tv
             - /docker/downloads:/downloads
             - /docker/containers/nzbget/config:/config
         restart: always
@@ -40,7 +40,7 @@ services:
             - 8989:8989
         volumes:
             - /etc/localtime:/etc/localtime:ro
-            - /storage/TV\ Shows:/tv
+            - /storage/TV Shows:/tv
             - /docker/downloads/completed/TV:/downloads/completed/TV
             - /docker/containers/sonarr/config:/config
         restart: always
@@ -87,7 +87,7 @@ services:
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /docker/containers/plexpy/config:/config
-            - /docker/containers/plex/config/Library/Application\ Support/Plex Media\ Server/Logs:/logs:ro
+            - /docker/containers/plex/config/Library/Application Support/Plex Media Server/Logs:/logs:ro
         restart: always
         environment:
             - VERSION=latest
