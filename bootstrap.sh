@@ -37,7 +37,7 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 #setup folders to store all the config files
 sudo -i
-sudo mkdir -p /docker/containers/{muximux,nzbget,plex,plexpy,radarr,sonarr,handbrake}/config
+sudo mkdir -p /docker/containers/{muximux,nzbget,plex,tautulli,radarr,sonarr,handbrake,ombi}/config
 sudo mkdir -p /docker/downloads/{completed/Movies,completed/TV}
 sudo mkdir -p /docker/containers/plex/transcode
 sudo mkdir -p /docker/containers/handbrake/{watch,output}
