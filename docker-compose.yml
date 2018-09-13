@@ -84,21 +84,21 @@ services:
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
         restart: always
-    plexpy:
-        image: linuxserver/plexpy
-        container_name: plexpy
+    tautulli:
+        image: linuxserver/tautulli
+        container_name: tautulli
         ports:
             - 8181:8181
         volumes:
             - /etc/localtime:/etc/localtime:ro
-            - /docker/containers/plexpy/config:/config
-            - /docker/containers/plex/config/Library/Application Support/Plex Media Server/Logs:/logs:ro
+            - /docker/containers/tautulli/config:/config
+            - /docker/containers/tautulli/config/Library/Application Support/Plex Media Server/Logs:/logs:ro
         restart: always
         environment:
             - VERSION=latest
             - PGID=1000
             - PUID=1000
-            - VIRTUAL_HOST=plexpy.htpc
+            - VIRTUAL_HOST=tautulli.htpc
     muximux:
         image: linuxserver/muximux
         container_name: muximux
@@ -122,3 +122,4 @@ services:
             - PUID=1000
             - PGID=1000
             - TZ="Europe/London" 
+
