@@ -104,8 +104,8 @@ services:
         container_name: muximux
         restart: always
         ports:
-            - 80:80
-            - 443:443
+            - 192.168.0.50:80:80
+            - 192.168.0.50:443:443
         volumes:
             - /docker/containers/muximux/config:/config
         environment:
@@ -122,4 +122,20 @@ services:
             - PUID=1000
             - PGID=1000
             - TZ="Europe/London" 
-
+    steamcache:
+        container_name: steamcache
+        restart: always
+        image: steamcache/steamcache:latest
+        volumes: 
+            - /storage/steamcache/data:/data/cache
+        ports:
+            - 192.168.0.16:80:80
+    steamcache-dns:
+        container_name: steamcache-dns
+        restart: always
+        image: steamcache/steamcache-dns:latest
+        ports:
+            - 53:53/udp
+        environment:
+            - STEAMCACHE_IP=192.168.0.16
+            - UPSTREAM_DNS=1.1.1.1
