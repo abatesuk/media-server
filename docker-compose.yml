@@ -3,7 +3,6 @@ services:
     plex:
         image: plexinc/pms-docker
         container_name: plex
-        network_mode: "host"
         ports:
             - 32400:32400
         volumes:
@@ -12,13 +11,34 @@ services:
             - /storage/Home Videos:/homevideos
             - /docker/containers/plex/transcode:/transcode
             - /docker/containers/plex/config:/config
+            - /docker/containers/shared:/shared
         restart: always
         environment:
             - VERSION=latest
             - PGID=1000
             - PUID=1000
             - TZ="Europe/London"
-            - VIRTUAL_HOST=plex.htpc
+            - HOSTNAME="Docker Plex"
+            - PLEX_CLAIM=${PLEX_CLAIM}
+            - ADVERTISE_IP="http://192.168.0.16:32400/"
+        networks:
+            - traefik_proxy
+        labels:
+            - traefik.enable=true
+            - traefik.backend=plexms
+            - traefik.frontend.rule=Host:plex.${DOMAINNAME}
+            - traefik.port=32400
+            - traefik.protocol=http
+            - traefik.docker.network=traefik_proxy
+            - traefik.frontend.headers.SSLRedirect=true
+            - traefik.frontend.headers.STSSeconds=315360000
+            - traefik.frontend.headers.browserXSSFilter=true
+            - traefik.frontend.headers.contentTypeNosniff=true
+            - traefik.frontend.headers.forceSTSHeader=true
+            - traefik.frontend.headers.SSLHost=EXAMPLE.COM
+            - traefik.frontend.headers.STSIncludeSubdomains=true
+            - traefik.frontend.headers.STSPreload=true
+            - traefik.frontend.headers.frameDeny=true
     nzbget:
         image: linuxserver/nzbget
         container_name: nzbget
@@ -34,8 +54,6 @@ services:
             - VERSION=latest
             - PGID=1000
             - PUID=1000
-            - VIRTUAL_HOST=nzbget.htpc
-            - VIRTUAL_PORT=6789
     sonarr:
         image: linuxserver/sonarr
         container_name: sonarr
@@ -51,7 +69,6 @@ services:
             - VERSION=latest
             - PGID=1000
             - PUID=1000
-            - VIRTUAL_HOST=sonarr.htpc
     radarr:
         image: linuxserver/radarr
         container_name: radarr
@@ -67,7 +84,6 @@ services:
             - PGID=1000
             - PUID=1000
             - TZ="Europe/London"
-            - VIRTUAL_HOST=radarr.htpc
     handbrake:
         image: coppit/handbrake
         container_name: handbrake
@@ -98,18 +114,14 @@ services:
             - VERSION=latest
             - PGID=1000
             - PUID=1000
-            - VIRTUAL_HOST=tautulli.htpc
     muximux:
         image: linuxserver/muximux
         container_name: muximux
         restart: always
         ports:
-            - 192.168.0.50:80:80
-            - 192.168.0.50:443:443
+            - 192.168.0.50:8081:80    
         volumes:
             - /docker/containers/muximux/config:/config
-        environment:
-            - VIRTUAL_HOST=muximux.htpc
     ombi:
         container_name: ombi
         restart: always
@@ -118,24 +130,67 @@ services:
             - /docker/containers/ombi/config:/config
         ports:
             - 3579:3579
+        networks:
+            - traefik_proxy
         environment:
             - PUID=1000
             - PGID=1000
             - TZ="Europe/London" 
-    steamcache:
-        container_name: steamcache
+        labels:
+            - traefik.enable=true
+            - traefik.backend=ombi
+            - traefik.frontend.rule=Host:ombi.${DOMAINNAME}
+            - traefik.port=3579
+            - traefik.docker.network=traefik_proxy
+            - traefik.frontend.headers.SSLRedirect=true
+            - traefik.frontend.headers.STSSeconds=315360000
+            - traefik.frontend.headers.browserXSSFilter=true
+            - traefik.frontend.headers.contentTypeNosniff=true
+            - traefik.frontend.headers.forceSTSHeader=true
+            - traefik.frontend.headers.SSLHost=EXAMPLE.COM
+            - traefik.frontend.headers.STSIncludeSubdomains=true
+            - traefik.frontend.headers.STSPreload=true
+            - traefik.frontend.headers.frameDeny=true
+    traefik:
+        hostname: traefik
+        image: traefik:v1.7.16
+        container_name: traefik
         restart: always
-        image: steamcache/steamcache:latest
-        volumes: 
-            - /storage/steamcache/data:/data/cache
-        ports:
-            - 192.168.0.16:80:80
-    steamcache-dns:
-        container_name: steamcache-dns
-        restart: always
-        image: steamcache/steamcache-dns:latest
-        ports:
-            - 53:53/udp
+        domainname: ${DOMAINNAME}
         environment:
-            - STEAMCACHE_IP=192.168.0.16
-            - UPSTREAM_DNS=1.1.1.1
+            - CF_API_EMAIL=${CLOUDFLARE_EMAIL}
+            - CF_API_KEY=${CLOUDFLARE_API_KEY}
+        networks:
+            - default
+            - traefik_proxy
+        labels:
+            - traefik.enable=true
+            - traefik.backend=traefik
+            - traefik.frontend.rule=Host:traefik.${DOMAINNAME}
+            - traefik.port=8080
+            - traefik.docker.network=traefik_proxy
+            - traefik.frontend.headers.SSLRedirect=true
+            - traefik.frontend.headers.STSSeconds=315360000
+            - traefik.frontend.headers.browserXSSFilter=true
+            - traefik.frontend.headers.contentTypeNosniff=true
+            - traefik.frontend.headers.forceSTSHeader=true
+            - traefik.frontend.headers.SSLHost=EXAMPLE.COM
+            - traefik.frontend.headers.STSIncludeSubdomains=true
+            - traefik.frontend.headers.STSPreload=true
+            - traefik.frontend.headers.frameDeny=true
+            - traefik.frontend.auth.basic.users=${HTTP_USERNAME}:${HTTP_PASSWORD}
+        ports:
+            - 80:80
+            - 443:443
+            - 8080:8080
+        volumes:
+            - /docker/containers/traefik:/etc/traefik
+            - /docker/containers/shared:/shared
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+
+networks:
+  traefik_proxy:
+    external:
+      name: traefik_proxy
+  default:
+    driver: bridge
