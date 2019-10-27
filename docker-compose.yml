@@ -35,9 +35,16 @@ services:
         labels:
             - traefik.enable=true
             - traefik.backend=plexms
-            - traefik.routers.routers0.rule=Host:plex.${DOMAINNAME}
-            - traefik.port=32400
-            - traefik.protocol=http
+            - traefik.http.middlewares.plex_redirect.redirectscheme.scheme=https
+            - traefik.http.services.plex.loadbalancer.server.port=32400
+            - traefik.http.routers.plex_insecure.entrypoints=web
+            - traefik.http.routers.plex_insecure.rule=Host(`plex.${DOMAINNAME}`)
+            - traefik.http.routers.plex_insecure.middlewares=plex_redirect@docker
+            - traefik.http.routers.plex.entrypoints=web-secure
+            - traefik.http.routers.plex.rule=Host(`plex.${DOMAINNAME}`)
+            - traefik.http.routers.plex.tls=true
+            - traefik.http.routers.plex.tls.certresolver=cloudflare
+            - traefik.http.routers.plex.service=plex@docker
             - traefik.docker.network=traefik_proxy
             - traefik.http.middlewares.plex.headers.sslRedirect=true
             - traefik.http.middlewares.plex.headers.stsSeconds=315360000
@@ -160,9 +167,16 @@ services:
         labels:
             - traefik.enable=true
             - traefik.backend=ombi
-            - traefik.routers.routers0.rule=Host:ombi.${DOMAINNAME}
-            - traefik.port=3579
-            - traefik.docker.network=traefik_proxy
+            - traefik.http.middlewares.ombi_redirect.redirectscheme.scheme=https
+            - traefik.http.services.ombi.loadbalancer.server.port=3579
+            - traefik.http.routers.ombi_insecure.entrypoints=web
+            - traefik.http.routers.ombi_insecure.rule=Host(`ombi.${DOMAINNAME}`)
+            - traefik.http.routers.ombi_insecure.middlewares=ombi_redirect@docker
+            - traefik.http.routers.ombi.entrypoints=web-secure
+            - traefik.http.routers.ombi.rule=Host(`ombi.${DOMAINNAME}`)
+            - traefik.http.routers.ombi.tls=true
+            - traefik.http.routers.ombi.tls.certresolver=cloudflare
+            - traefik.http.routers.ombi.service=ombi@docker
             - traefik.http.middlewares.ombi.headers.sslRedirect=true
             - traefik.http.middlewares.ombi.headers.stsSeconds=315360000
             - traefik.http.middlewares.ombi.headers.browserXssFilter=true
@@ -181,6 +195,8 @@ services:
         environment:
             - CF_API_EMAIL=${CLOUDFLARE_EMAIL}
             - CF_API_KEY=${CLOUDFLARE_API_KEY}
+            - CLOUDFLARE_EMAIL=${CLOUDFLARE_EMAIL}
+            - CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
         networks:
             - default
             - traefik_proxy
