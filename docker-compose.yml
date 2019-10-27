@@ -169,7 +169,7 @@ services:
             - traefik.frontend.headers.frameDeny=true
     traefik:
         hostname: traefik
-        image: traefik:latest
+        image: traefik:v1.7.16
         container_name: traefik
         restart: always
         domainname: ${DOMAINNAME}
