@@ -163,7 +163,7 @@ services:
         environment:
             - PUID=1000
             - PGID=1000
-            - TZ="Europe/London" 
+            - TZ="Europe/London"
         labels:
             - traefik.enable=true
             - traefik.backend=ombi
@@ -186,6 +186,32 @@ services:
             - traefik.http.middlewares.ombi.headers.stsIncludeSubdomains=true
             - traefik.http.middlewares.ombi.headers.stsPreload=true
             - traefik.http.middlewares.ombi.headers.frameDeny=true
+    pihole:
+        container_name: pihole
+        domainname: docker
+        hostname: pihole
+        image: pihole/pihole:latest
+        ports:
+            - 53:53/tcp
+            - 53:53/udp
+            - 67:67/udp
+            - 8082:80
+            - 8083:443
+        restart: always
+        volumes:
+            - /docker/containers/pihole/pihole:/etc/pihole
+            - /docker/containers/pihole/dnsmasq.d:/etc/dnsmasq.d
+        cap_add:
+            - NET_ADMIN
+        environment:
+            - ServerIP=${SERVER_IP}
+            - PROXY_LOCATION=pihole
+            - VIRTUAL_HOST=192.168.0.16
+            - VIRTUAL_PORT=80
+            - TZ="Europe/London"
+            - WEBPASSWORD=${PIHOLEWEBPASSWORD}
+            - DNS1=127.0.0.1
+            - DNS2=1.1.1.1
     traefik:
         hostname: traefik
         image: traefik:latest
