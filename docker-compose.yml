@@ -28,26 +28,33 @@ services:
             - TZ="Europe/London"
             - HOSTNAME="Docker Plex"
             - PLEX_CLAIM=${PLEX_CLAIM}
-            - ADVERTISE_IP=http://192.168.0.16:32400,https://plex.abatesuk.co.uk:443
+            - ADVERTISE_IP=http://192.168.0.16:32400,https://plex.${DOMAINNAME}:443
         networks:
             - traefik_proxy
             - default
         labels:
             - traefik.enable=true
             - traefik.backend=plexms
-            - traefik.frontend.rule=Host:plex.${DOMAINNAME}
-            - traefik.port=32400
-            - traefik.protocol=http
+            - traefik.http.middlewares.plex_redirect.redirectscheme.scheme=https
+            - traefik.http.services.plex.loadbalancer.server.port=32400
+            - traefik.http.routers.plex_insecure.entrypoints=web
+            - traefik.http.routers.plex_insecure.rule=Host(`plex.${DOMAINNAME}`)
+            - traefik.http.routers.plex_insecure.middlewares=plex_redirect@docker
+            - traefik.http.routers.plex.entrypoints=web-secure
+            - traefik.http.routers.plex.rule=Host(`plex.${DOMAINNAME}`)
+            - traefik.http.routers.plex.tls=true
+            - traefik.http.routers.plex.tls.certresolver=cloudflare
+            - traefik.http.routers.plex.service=plex@docker
             - traefik.docker.network=traefik_proxy
-            - traefik.frontend.headers.SSLRedirect=true
-            - traefik.frontend.headers.STSSeconds=315360000
-            - traefik.frontend.headers.browserXSSFilter=true
-            - traefik.frontend.headers.contentTypeNosniff=true
-            - traefik.frontend.headers.forceSTSHeader=true
-            - traefik.frontend.headers.SSLHost=EXAMPLE.COM
-            - traefik.frontend.headers.STSIncludeSubdomains=true
-            - traefik.frontend.headers.STSPreload=true
-            - traefik.frontend.headers.frameDeny=true
+            - traefik.http.middlewares.plex.headers.sslRedirect=true
+            - traefik.http.middlewares.plex.headers.stsSeconds=315360000
+            - traefik.http.middlewares.plex.headers.browserXssFilter=true
+            - traefik.http.middlewares.plex.headers.contentTypeNosniff=true
+            - traefik.http.middlewares.plex.headers.forceSTSHeader=true
+            - traefik.http.middlewares.plex.headers.sslHost=EXAMPLE.COM
+            - traefik.http.middlewares.plex.headers.stsIncludeSubdomains=true
+            - traefik.http.middlewares.plex.headers.stsPreload=true
+            - traefik.http.middlewares.plex.headers.frameDeny=true
     nzbget:
         image: linuxserver/nzbget
         container_name: nzbget
@@ -109,6 +116,11 @@ services:
             - /docker/containers/handbrake/output:/output:rw
             - /docker/containers/handbrake/config:/config:rw
         restart: always
+        logging:
+            driver: json-file
+            options:
+                max-file: '5'
+                max-size: '10m'
     watchtower:
         image: v2tec/watchtower
         container_name: watchtower
@@ -151,22 +163,55 @@ services:
         environment:
             - PUID=1000
             - PGID=1000
-            - TZ="Europe/London" 
+            - TZ="Europe/London"
         labels:
             - traefik.enable=true
             - traefik.backend=ombi
-            - traefik.frontend.rule=Host:ombi.${DOMAINNAME}
-            - traefik.port=3579
-            - traefik.docker.network=traefik_proxy
-            - traefik.frontend.headers.SSLRedirect=true
-            - traefik.frontend.headers.STSSeconds=315360000
-            - traefik.frontend.headers.browserXSSFilter=true
-            - traefik.frontend.headers.contentTypeNosniff=true
-            - traefik.frontend.headers.forceSTSHeader=true
-            - traefik.frontend.headers.SSLHost=EXAMPLE.COM
-            - traefik.frontend.headers.STSIncludeSubdomains=true
-            - traefik.frontend.headers.STSPreload=true
-            - traefik.frontend.headers.frameDeny=true
+            - traefik.http.middlewares.ombi_redirect.redirectscheme.scheme=https
+            - traefik.http.services.ombi.loadbalancer.server.port=3579
+            - traefik.http.routers.ombi_insecure.entrypoints=web
+            - traefik.http.routers.ombi_insecure.rule=Host(`ombi.${DOMAINNAME}`)
+            - traefik.http.routers.ombi_insecure.middlewares=ombi_redirect@docker
+            - traefik.http.routers.ombi.entrypoints=web-secure
+            - traefik.http.routers.ombi.rule=Host(`ombi.${DOMAINNAME}`)
+            - traefik.http.routers.ombi.tls=true
+            - traefik.http.routers.ombi.tls.certresolver=cloudflare
+            - traefik.http.routers.ombi.service=ombi@docker
+            - traefik.http.middlewares.ombi.headers.sslRedirect=true
+            - traefik.http.middlewares.ombi.headers.stsSeconds=315360000
+            - traefik.http.middlewares.ombi.headers.browserXssFilter=true
+            - traefik.http.middlewares.ombi.headers.contentTypeNosniff=true
+            - traefik.http.middlewares.ombi.headers.forceSTSHeader=true
+            - traefik.http.middlewares.ombi.headers.sslHost=EXAMPLE.COM
+            - traefik.http.middlewares.ombi.headers.stsIncludeSubdomains=true
+            - traefik.http.middlewares.ombi.headers.stsPreload=true
+            - traefik.http.middlewares.ombi.headers.frameDeny=true
+    pihole:
+        container_name: pihole
+        domainname: docker
+        hostname: pihole
+        image: pihole/pihole:latest
+        ports:
+            - 53:53/tcp
+            - 53:53/udp
+            - 67:67/udp
+            - 8082:80
+            - 8083:443
+        restart: always
+        volumes:
+            - /docker/containers/pihole/pihole:/etc/pihole
+            - /docker/containers/pihole/dnsmasq.d:/etc/dnsmasq.d
+        cap_add:
+            - NET_ADMIN
+        environment:
+            - ServerIP=${SERVER_IP}
+            - PROXY_LOCATION=pihole
+            - VIRTUAL_HOST=192.168.0.16
+            - VIRTUAL_PORT=80
+            - TZ="Europe/London"
+            - WEBPASSWORD=${PIHOLEWEBPASSWORD}
+            - DNS1=127.0.0.1
+            - DNS2=1.1.1.1
     traefik:
         hostname: traefik
         image: traefik:v1.7.16
@@ -176,25 +221,11 @@ services:
         environment:
             - CF_API_EMAIL=${CLOUDFLARE_EMAIL}
             - CF_API_KEY=${CLOUDFLARE_API_KEY}
+            - CLOUDFLARE_EMAIL=${CLOUDFLARE_EMAIL}
+            - CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
         networks:
             - default
             - traefik_proxy
-        labels:
-            - traefik.enable=true
-            - traefik.backend=traefik
-            - traefik.frontend.rule=Host:traefik.${DOMAINNAME}
-            - traefik.port=8080
-            - traefik.docker.network=traefik_proxy
-            - traefik.frontend.headers.SSLRedirect=true
-            - traefik.frontend.headers.STSSeconds=315360000
-            - traefik.frontend.headers.browserXSSFilter=true
-            - traefik.frontend.headers.contentTypeNosniff=true
-            - traefik.frontend.headers.forceSTSHeader=true
-            - traefik.frontend.headers.SSLHost=EXAMPLE.COM
-            - traefik.frontend.headers.STSIncludeSubdomains=true
-            - traefik.frontend.headers.STSPreload=true
-            - traefik.frontend.headers.frameDeny=true
-            - traefik.frontend.auth.basic.users=${HTTP_USERNAME}:${HTTP_PASSWORD}
         ports:
             - 80:80
             - 443:443
