@@ -57,8 +57,8 @@ include:
   - compose/crowdsec.yml
   - compose/traefik-bouncer.yml
   ##### GAME SERVERS
-  - compose/gameservers/vrising.yml
+  #- compose/gameservers/vrising.yml
   #- compose/gameservers/satisfactory.yml
   #- compose/gameservers/valheim.yml
-  - compose/gameservers/foundry.yml
+  #- compose/gameservers/foundry.yml
   - compose/gameservers/soulmask.yml
