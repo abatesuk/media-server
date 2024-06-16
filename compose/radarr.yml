@@ -1,0 +1,32 @@
+services:
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest 
+    container_name: radarr
+    security_opt:
+      - no-new-privileges:true
+    restart: "unless-stopped"
+    #profiles: ["media", "arrs", "all"]
+    networks:
+      - default
+      - t2_proxy
+    ports:
+      - "7878:7878"
+    volumes:
+      - $DATADIR/radarr/config:/config
+      - /mnt/storage/Movies:/movies
+      - /docker/downloads/completed/Movies:/downloads/completed/Movies
+      - "/etc/localtime:/etc/localtime:ro"
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.radarr-rtr.entrypoints=websecure"
+      - "traefik.http.routers.radarr-rtr.rule=Host(`radarr.$DOMAINNAME_1`)"
+      # Middlewares
+      - "traefik.http.routers.radarr-rtr.middlewares=middlewares-ip-whitelist@file,chain-no-auth@file"
+      # HTTP Services
+      - "traefik.http.routers.radarr-rtr.service=radarr-svc"
+      - "traefik.http.services.radarr-svc.loadbalancer.server.port=7878"

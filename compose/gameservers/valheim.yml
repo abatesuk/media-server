@@ -1,0 +1,30 @@
+services:
+  valheim: 
+    container_name: valheim
+    hostname: valheim
+    image: ghcr.io/lloesche/valheim-server
+    cap_add:
+      - sys_nice
+    volumes: 
+      - '$DATADIR/valheim/config:/config'
+      - '$DATADIR/valheim/data:/opt/valheim'
+    ports: 
+      - "2456-2458:2456-2458/udp"
+      - "9001:9001/tcp"
+    networks:
+      - t2_proxy
+      - default
+    secrets:
+      - game_server_password
+      - steam_admin_ids
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      SERVER_NAME: Ymir
+      SERVER_PASS: /run/secrets/game_server_password
+      SERVER_PUBLIC: false
+      PUBLIC_TEST: true
+      ADMINLIST_IDS: /run/secrets/steam_admin_ids
+    restart: unless-stopped
+    stop_grace_period: 2m

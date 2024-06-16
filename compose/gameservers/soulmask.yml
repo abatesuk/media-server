@@ -1,0 +1,24 @@
+services:
+  soulmask:
+    image: sknnr/soulmask-dedicated-server:latest
+    container_name: soulmask-server
+    hostname: soulmask-server
+    restart: unless-stopped
+    networks:
+      - default
+    ports:
+      - "27050:27050/udp"
+      - "27051:27051/udp"
+    secrets:
+      - game_server_password
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      SERVER_NAME: Ymir
+      SERVER_PASSWORD: /run/secrets/game_server_password
+      ADMIN_PASSWORD: /run/secrets/game_server_password
+      GAME_MODE: pve
+    volumes:
+      - '$DATADIR/soulmask:/home/steam/soulmask'
+    stop_grace_period: 90s

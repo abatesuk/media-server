@@ -1,0 +1,28 @@
+services:
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:latest 
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    # profiles: ["core", "all"]
+    networks:
+      - t2_proxy
+      - socket_proxy
+    command: -H tcp://socket-proxy:2375
+    ports:
+      - "9000:9000"
+    volumes:
+      - $DATADIR/portainer/data:/data
+    environment:
+      - TZ=$TZ
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.portainer-rtr.entrypoints=websecure"
+      - "traefik.http.routers.portainer-rtr.rule=Host(`portainer.$DOMAINNAME_1`)"
+      # Middlewares
+      - "traefik.http.routers.portainer-rtr.middlewares=middlewares-ip-whitelist@file,chain-no-auth@file"
+      # HTTP Services
+      - "traefik.http.routers.portainer-rtr.service=portainer-svc"
+      - "traefik.http.services.portainer-svc.loadbalancer.server.port=9000"

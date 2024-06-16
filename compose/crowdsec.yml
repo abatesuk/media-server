@@ -1,0 +1,21 @@
+services:
+  # CrowdSec - Open-source & collaborative security IPS
+  crowdsec:
+    image: crowdsecurity/crowdsec
+    container_name: crowdsec
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    networks:
+      - t2_proxy
+    ports:
+      - "8080:8080"
+    environment:
+      COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/whitelist-good-actors crowdsecurity/iptables crowdsecurity/linux  crowdsecurity/sshd"
+      GID: "${GID-1000}"
+      CUSTOM_HOSTNAME: $HOSTNAME
+    volumes:
+      - $DOCKERDIR/logs/htpc/traefik:/logs/htpc:ro
+      - /var/log:/var/log:ro
+      - $DATADIR/crowdsec/data:/var/lib/crowdsec/data
+      - $DATADIR/crowdsec/config:/etc/crowdsec

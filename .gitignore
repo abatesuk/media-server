@@ -1,0 +1,5 @@
+logs/*
+secrets/*
+.env
+appdata/traefik2/certs
+appdata/traefik2/acme

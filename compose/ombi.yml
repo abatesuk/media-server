@@ -1,0 +1,29 @@
+services:
+  ombi:
+    container_name: ombi
+    image: linuxserver/ombi:latest
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+      #rofiles: ["core", "all"]
+    networks:
+      - t2_proxy
+      - socket_proxy
+    ports:
+      - "3579:3579"
+    volumes:
+      - $DATADIR/ombi/config:/config
+    environment:
+      - TZ=$TZ
+      - PUID=$PUID
+      - PGID=$PGID
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.ombi-rtr.entrypoints=websecure"
+      - "traefik.http.routers.ombi-rtr.rule=Host(`ombi.$DOMAINNAME_1`)"
+      # Middlewares
+      - "traefik.http.routers.ombi-rtr.middlewares=chain-no-auth@file"
+      # HTTP Services
+      - "traefik.http.routers.ombi-rtr.service=ombi-svc"
+      - "traefik.http.services.ombi-svc.loadbalancer.server.port=3579"

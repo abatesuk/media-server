@@ -1,0 +1,14 @@
+services:
+  # Traefik Certs Dumper - Extract LetsEncrypt Certificates - Traefik2 Compatible
+  certdumper:
+    container_name: traefik_certdumper
+    image: humenius/traefik-certs-dumper:latest
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    # profiles: ["apps", "all"]
+    networks:
+      - default
+    volumes:
+      - $DATADIR/traefik/acme:/traefik:ro
+      - $DATADIR/shared/certs/:/output:rw

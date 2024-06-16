@@ -1,0 +1,27 @@
+services:
+  vrising:
+    container_name: vrising
+    image: trueosiris/vrising
+    networks:
+      - t2_proxy
+    secrets:
+      - game_server_password
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      VR_NAME: Ymir
+      VR_PASSWORD: /run/secrets/game_server_password
+    volumes:
+      - $DATADIR/vrising/server:/mnt/vrising/server:rw
+      - $DATADIR/vrising/data:/mnt/vrising/persistentdata:rw
+    labels:
+      - "traefik.enable=true"
+      # UDP Routers
+      - "traefik.udp.routers.vrising_1-rtr.entrypoints=vrising_1"
+      - "traefik.udp.routers.vrising_2-rtr.entrypoints=vrising_2"
+      # UDP Services
+      - "traefik.udp.routers.vrising_1-rtr.service=vrising_1-svc"
+      - "traefik.udp.services.vrising_1-svc.loadbalancer.server.port=9876"
+      - "traefik.udp.routers.vrising_2-rtr.service=vrising_2-svc"
+      - "traefik.udp.services.vrising_2-svc.loadbalancer.server.port=9877"

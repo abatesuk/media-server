@@ -1,0 +1,49 @@
+services:
+  # Plex - Media Server
+  plex:
+    image: plexinc/pms-docker
+    container_name: plex
+    networks:
+      - t2_proxy
+      - socket_proxy
+    security_opt:
+      - no-new-privileges:true
+    restart: "unless-stopped"
+    #profiles: ["media", "all"]
+    ports:
+      - "32400:32400/tcp"
+      - "3005:3005/tcp"
+      - "8324:8324/tcp"
+      - "32469:32469/tcp"
+      - "1900:1900/udp"
+      - "32410:32410/udp"
+      - "32412:32412/udp"
+      - "32413:32413/udp"
+      - "32414:32414/udp"
+    volumes:
+      - $DATADIR/plex/config:/config
+      - /mnt/storage/Movies:/movies
+      - /mnt/storage/TV Shows:/tv
+      - /mnt/storage/Home Videos:/homevideos
+      - $DATADIR/shared:/shared
+      - /dev/shm:/data/transcode
+    environment:
+      TZ: $TZ
+      HOSTNAME: "Plex"
+      PLEX_CLAIM_FILE: /run/secrets/plex_claim
+      PLEX_UID: $PUID
+      PLEX_GID: $PGID
+      ADVERTISE_IP: "http://$MEDIASERVER_IP:32400/,https://plex.$DOMAINNAME_1:443"
+      ALLOWED_NETWORKS: $LOCAL_NETWORK
+    secrets:
+      - plex_claim
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.plex-rtr.entrypoints=websecure"
+      - "traefik.http.routers.plex-rtr.rule=Host(`plex.$DOMAINNAME_1`)"
+      # Middlewares
+      - "traefik.http.routers.plex-rtr.middlewares=chain-no-auth@file"
+      # HTTP Services
+      - "traefik.http.routers.plex-rtr.service=plex-svc"
+      - "traefik.http.services.plex-svc.loadbalancer.server.port=32400"

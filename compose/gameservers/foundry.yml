@@ -1,0 +1,26 @@
+services:
+  foundry: 
+    container_name: foundry
+    hostname: foundry
+    image: luxusburg/docker-foundry:latest
+    volumes: 
+      - '$DATADIR/foundry/server:/home/foundry/server_files'
+      - '$DATADIR/foundry/data:/home/foundry/persistent_data'
+    ports: 
+      - "3724:3724/udp"
+    secrets:
+      - game_server_password
+    networks:
+      - t2_proxy
+      - default
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      SERVER_PWD: /run/secrets/game_server_password
+      SERVER_NAME: 'Ymir'
+      PAUSE_SERVER_WHEN_EMPTY: true
+      MAX_TRANSFER_RATE: 8192
+      SERVER_IS_PUBLIC: false
+    restart: unless-stopped
+    stop_grace_period: 20s

@@ -1,0 +1,37 @@
+services:
+  satisfactory-server:
+    container_name: satisfactory-server
+    hostname: satisfactory-server
+    image: wolveix/satisfactory-server:latest
+    volumes:
+      - '$DATADIR/satisfactory/config:/config'
+    networks:
+      - t2_proxy
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+      MAXPLAYERS: 4
+      ROOTLESS: false
+      STEAMBETA: false
+      TIMEOUT: 60s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+        reservations:
+          memory: 4G
+    labels:
+      - "traefik.enable=true"
+      # UDP Routers
+      - "traefik.udp.routers.satisfactory_1-rtr.entrypoints=satisfactory_1"
+      - "traefik.udp.routers.satisfactory_2-rtr.entrypoints=satisfactory_2"
+      - "traefik.udp.routers.satisfactory_3-rtr.entrypoints=satisfactory_3"
+      # UDP Services
+      - "traefik.udp.routers.satisfactory_1-rtr.service=satisfactory_1-svc"
+      - "traefik.udp.services.satisfactory_1-svc.loadbalancer.server.port=7777"
+      - "traefik.udp.routers.satisfactory_2-rtr.service=satisfactory_2-svc"
+      - "traefik.udp.services.satisfactory_2-svc.loadbalancer.server.port=15000"
+      - "traefik.udp.routers.satisfactory_3-rtr.service=satisfactory_3-svc"
+      - "traefik.udp.services.satisfactory_3-svc.loadbalancer.server.port=15777"

@@ -1,0 +1,33 @@
+services:
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest 
+    container_name: sonarr
+    security_opt:
+      - no-new-privileges:true
+    restart: "unless-stopped"
+    #profiles: ["media", "arrs", "all"]
+    networks:
+      - default
+      - t2_proxy
+    ports:
+      - "8989:8989"
+    volumes:
+      - $DATADIR/sonarr/config:/config
+      - /mnt/storage/TV Shows:/tv
+      - /docker/downloads/completed/TV:/downloads/completed/TV
+      - "/etc/localtime:/etc/localtime:ro"
+    environment:
+      TZ: $TZ
+      PUID: $PUID
+      PGID: $PGID
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.sonarr-rtr.entrypoints=websecure"
+      - "traefik.http.routers.sonarr-rtr.rule=Host(`sonarr.$DOMAINNAME_1`)"
+      # Middlewares
+      - "traefik.http.routers.sonarr-rtr.middlewares=middlewares-ip-whitelist@file,chain-no-auth@file"
+      # HTTP Services
+      - "traefik.http.routers.sonarr-rtr.service=sonarr-svc"
+      - "traefik.http.services.sonarr-svc.loadbalancer.server.port=8989"
+

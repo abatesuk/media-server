@@ -1,0 +1,64 @@
+########################### NETWORKS
+networks:
+  default:
+    driver: bridge
+  socket_proxy:
+    name: socket_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.91.0/24
+  t2_proxy:
+    name: t2_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.90.0/24
+  dockervlan:
+    name: dockervlan
+    driver: macvlan
+    driver_opts:
+      parent: enp3s0
+    ipam:
+      config:
+        - subnet: 192.168.0.0/24
+          ip_range: 192.168.0.225/32
+          gateway: 192.168.0.1
+
+########################### SECRETS
+secrets:
+  basic_auth_credentials:
+    file: $DOCKERDIR/secrets/basic_auth_credentials
+  cf_dns_api_token:
+    file: $DOCKERDIR/secrets/cf_dns_api_token
+  plex_claim:
+    file: $DOCKERDIR/secrets/plex_claim
+  game_server_password:
+    file: $DOCKERDIR/secrets/game_server_password
+  steam_admin_ids:
+    file: $DOCKERDIR/secrets/steam_admin_ids
+
+include:
+  #- compose/vscode.yml
+  - compose/socket-proxy.yml
+  - compose/traefik.yml
+  - compose/portainer.yml
+  - compose/plex.yml
+  - compose/sonarr.yml
+  - compose/radarr.yml
+  - compose/sabnzb.yml
+  ##- compose/ddns-updater.yml
+  - compose/tautulli.yml
+  - compose/ombi.yml
+  - compose/adguardhome.yml
+  ##- compose/certdumper.yml
+  - compose/adguardhome.yml
+  - compose/watchtower.yml
+  - compose/crowdsec.yml
+  - compose/traefik-bouncer.yml
+  ##### GAME SERVERS
+  - compose/gameservers/vrising.yml
+  #- compose/gameservers/satisfactory.yml
+  #- compose/gameservers/valheim.yml
+  - compose/gameservers/foundry.yml
+  - compose/gameservers/soulmask.yml

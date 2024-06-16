@@ -1,0 +1,33 @@
+services:
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    #profiles: ["apps", "downloads", "all"]
+    networks:
+      - default
+      - t2_proxy
+    ports:
+      - "8084:8080"
+    volumes:
+      - $DATADIR/sabnzbd:/config
+      - /docker/downloads:/downloads
+      - /mnt/storage/TV Shows:/tv
+      - /mnt/storage/Movies:/movies
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      TZ: $TZ
+      UMASK_SET: 002
+    labels:
+      - "traefik.enable=true"
+      # HTTP Routers
+      - "traefik.http.routers.sabnzbd-rtr.entrypoints=websecure"
+      - "traefik.http.routers.sabnzbd-rtr.rule=Host(`sabnzbd.$DOMAINNAME_1`)"
+      # Middlewares
+      - "traefik.http.routers.sabnzbd-rtr.middlewares=middlewares-ip-whitelist@file,chain-no-auth@file"
+      # HTTP Services
+      - "traefik.http.routers.sabnzbd-rtr.service=sabnzbd-svc"
+      - "traefik.http.services.sabnzbd-svc.loadbalancer.server.port=8084"
