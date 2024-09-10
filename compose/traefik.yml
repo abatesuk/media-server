@@ -20,9 +20,6 @@ services:
       - --entrypoints.vrising_1.udp.timeout=60s
       - --entrypoints.vrising_2.address=:9877/udp
       - --entrypoints.vrising_2.udp.timeout=60s
-      - --entrypoints.satisfactory_1.address=:7777/udp
-      - --entrypoints.satisfactory_2.address=:15000/udp
-      - --entrypoints.satisfactory_3.address=:15777/udp
       - --entrypoints.traefik.address=:8080
       # - --entrypoints.ping.address=:8081
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
@@ -97,18 +94,6 @@ services:
         mode: host
       - target: 9877
         published: 9877
-        protocol: udp
-        mode: host
-      - target: 7777
-        published: 7777
-        protocol: udp
-        mode: host
-      - target: 15000
-        published: 15000
-        protocol: udp
-        mode: host
-      - target: 15777
-        published: 15777
         protocol: udp
         mode: host
     volumes:
